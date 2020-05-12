@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using HidSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,59 +18,33 @@ namespace AuraSharp
             ConfigureServices(serviceCollection, args);
             using (var services = serviceCollection.BuildServiceProvider())
             {
-                var logger = services.GetRequiredService<ILogger<Program>>();
-                
-                logger.LogInformation("Hello World");
+                DoWithController(services);
+                Console.ReadKey();
+            }
+        }
 
-                var localDevices = DeviceList.Local;
-                foreach (var device in localDevices.GetHidDevices(0x0B05))
+        private static void DoWithController(ServiceProvider services)
+        {
+            var a = services.GetService<AddressableLedController>();
+
+            var leds = new List<LED>(AddressableLedController.MaxLeds);
+            for (int i = 0; i < AddressableLedController.MaxLeds; i++)
+            {
+                leds.Add(new LED(0,0,0));
+            }
+            a.SetLeds(leds, 0);
+
+            for (byte i = 0; i < 255; i++)
+            {
+                leds = leds.Select(x =>
                 {
-                    if (device.GetProductName() == "AURA LED Controller")
-                    {
-                        logger.LogDebug("Success");
-                        DoSomethingFancy(logger, device);
-                    }
-                }
-            }
-        }
-
-        private static void DoSomethingFancy(ILogger logger, HidDevice device)
-        {
-            var messageLength = 65;
-            byte messageStart = 0xEC;
-            var message = new byte[messageLength];
-            Array.Fill(message, Byte.MinValue);
-            message[0] = messageStart;
-            message[1] = (byte) AuraMode.EFFECT;
-            message[4] = 0xff;
-
-            WriteDevice(logger, device, message);
-
-            byte start_led = 15;
-            byte end_led = 30;
-            
-            message[1] = (byte) AuraMode.DIRECT;
-            message[2] = 0x00;
-            message[3] =start_led;
-            message[4] = (byte) (end_led - start_led);
-            for (int i = 5; i < messageLength; i += 3)
-            {
-                message[i] = 255;
-            }
-            
-            WriteDevice(logger, device, message);
-
-            message[2] = 0x80;
-            WriteDevice(logger, device, message);
-        }
-
-        private static void WriteDevice(ILogger logger, HidDevice device, byte[] message)
-        {
-            using (var deviceStream = device.Open())
-            {
-                logger.LogInformation($"Writing: {message}");
-                logger.LogInformation($"Device is writeable? {deviceStream.CanWrite}");
-                deviceStream.Write(message,0,65);
+                    x.R = i;
+                    x.G = i;
+                    x.B = i;
+                    return x;
+                }).ToList();
+                
+                a.SetLeds(leds, 0);
             }
         }
         private static void ConfigureServices(IServiceCollection serviceCollection, string[] args)
@@ -88,6 +64,8 @@ namespace AuraSharp
             {
                 builder.AddSerilog(dispose: true);
             });
+
+            serviceCollection.AddSingleton<AddressableLedController>();
         }
     }
 }
