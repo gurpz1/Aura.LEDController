@@ -1,4 +1,4 @@
-﻿# AuraSharp
+﻿# Aura LED Controller
 
 A little library knocked up to help programmatically interact with teh ARGB Controler on Asus motherboards
 
