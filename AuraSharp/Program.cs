@@ -18,33 +18,18 @@ namespace AuraSharp
             ConfigureServices(serviceCollection, args);
             using (var services = serviceCollection.BuildServiceProvider())
             {
-                DoWithController(services);
-                Console.ReadKey();
-            }
-        }
+                var controller = services.GetService<AuraUsbController>();
+                var logger = services.GetRequiredService<ILogger<Program>>();
 
-        private static void DoWithController(ServiceProvider services)
-        {
-            var a = services.GetService<AddressableLedController>();
-
-            var leds = new List<LED>(AddressableLedController.MaxLeds);
-            for (int i = 0; i < AddressableLedController.MaxLeds; i++)
-            {
-                leds.Add(new LED(0,0,0));
-            }
-            a.SetLeds(leds, 0);
-
-            for (byte i = 0; i < 255; i++)
-            {
-                leds = leds.Select(x =>
+                IList<LED> ledColours = new List<LED>(120);
+                for (var j =0; j < 120; j++)
                 {
-                    x.R = i;
-                    x.G = i;
-                    x.B = i;
-                    return x;
-                }).ToList();
-                
-                a.SetLeds(leds, 0);
+                    ledColours.Insert(j,new LED(255,97,41));
+                }
+                controller.DirectControl(ledColours);
+
+
+                logger.LogInformation(("Done"));
             }
         }
         private static void ConfigureServices(IServiceCollection serviceCollection, string[] args)
@@ -65,7 +50,7 @@ namespace AuraSharp
                 builder.AddSerilog(dispose: true);
             });
 
-            serviceCollection.AddSingleton<AddressableLedController>();
+            serviceCollection.AddSingleton<AuraUsbController>(services => new AuraUsbController(services.GetRequiredService<ILogger<AuraUsbController>>(), 0));
         }
     }
 }

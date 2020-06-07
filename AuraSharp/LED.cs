@@ -2,9 +2,9 @@
 {
     public class LED
     {
-        public byte R { get; set; }
-        public byte G { get; set; }
-        public byte B { get; set; }
+        public byte R { get; set; } = 0x00;
+        public byte G { get; set; }= 0x00;
+        public byte B { get; set; }= 0x00;
 
         public LED(byte r, byte g, byte b)
         {
