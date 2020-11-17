@@ -7,4 +7,4 @@ Most of the research done to make this happen is not mine. Alot of the hard work
     
 All I have done so far is ported  [Addressable Header Controller](https://gitlab.com/cneil02/aura-addressable-header-controller) to dotnet core for my own benefit.
 
-Addressability so far seems to be working on my Asus Prime X590-P.
+Addressability so far seems to be working on my Asus Prime X570-P.
